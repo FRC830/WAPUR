@@ -16,9 +16,6 @@ public:
 	static const int RIGHT_FRONT_PWM = 2;
 	static const int RIGHT_BACK_PWM = 3;
 
-	float prev_speed = 0;
-	float prev_turn = 0;
-
 	int TICKS_TO_ACCEL = 10;
 
 	RobotDrive *drive;
@@ -70,6 +67,11 @@ public:
 	}
 	void TeleopInit() {
 
+	}
+	float prev_speed = 0;
+	float prev_turn = 0;
+
+	void TeleopPeriodic() {
 		float cur_turn = pilot->LeftX();
 		float cur_speed = pilot->RightY();
 
@@ -80,11 +82,6 @@ public:
 
 		prev_turn = turn;
 		prev_speed = speed;
-
-
-	}
-
-	void TeleopPeriodic() {
 
 	}
 
