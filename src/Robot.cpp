@@ -16,22 +16,20 @@ public:
 	static const int RIGHT_FRONT_PWM = 2;
 	static const int RIGHT_BACK_PWM = 3;
 
-	int TICKS_TO_ACCEL = 10;
+	//declare a drive train object & a Lib830:: gamepad object 
+	//object declaration example: Motor *motor
 
-	RobotDrive *drive;
-	Lib830::GamepadF310 *pilot;
 
 	void RobotInit() {
 		chooser.AddDefault(autoNameDefault, autoNameDefault);
 		chooser.AddObject(autoNameCustom, autoNameCustom);
 		frc::SmartDashboard::PutData("Auto Modes", &chooser);
 
-		drive = new RobotDrive(
-				new VictorSP(LEFT_FRONT_PWM),
-				new VictorSP(LEFT_BACK_PWM),
-				new VictorSP(RIGHT_FRONT_PWM),
-				new VictorSP(RIGHT_BACK_PWM)
-		);
+		/*initialize drive train (look at http://first.wpi.edu/FRC/roborio/release/docs/cpp/classfrc_1_1RobotDrive.html
+		for constructor */
+		//ex: motor = new Motor (new VictorSP(MOTOR_PWM));
+
+		//initalize game pad, constructor is Lib830::Gamepad(0)
 		pilot = new Lib830::GamepadF310(0);
 	}
 
@@ -72,16 +70,15 @@ public:
 	float prev_turn = 0;
 
 	void TeleopPeriodic() {
-		float cur_turn = pilot->LeftX();
-		float cur_speed = pilot->RightY();
-
-		float turn = Lib830::accel(prev_turn,cur_turn , TICKS_TO_ACCEL );
-		float speed = Lib830::accel(prev_speed, cur_speed, TICKS_TO_ACCEL);
-
-		drive->ArcadeDrive(speed, turn, false);
-
-		prev_turn = turn;
-		prev_speed = speed;
+		
+		float turn = /*from gamepad class, LeftX(),LeftY(),RightX(),RightY() correspond to game pad controlls
+		call function with gamepadobject -> Function() */
+			
+		float speed = /*different axis than speed!*/
+		
+		//use arcade drive function from RobotDrive class  (so you need to do class->ArcadeDrive(speed, turn, false) )
+ 		
+		//accel function after basic drive train works 
 
 	}
 
