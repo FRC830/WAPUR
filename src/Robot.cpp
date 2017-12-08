@@ -14,6 +14,7 @@
 #include "Arm.h"
 
 class Robot: public frc::IterativeRobot {
+	enum AutoMode {NOTHING, DROPBALL};
 public:
 	static const int LEFT_FRONT_PWM = 5; //these numbers are subject to change
 	static const int LEFT_BACK_PWM = 4;
@@ -23,6 +24,8 @@ public:
 	static const int CLAMP_PCM = 0; //subject to change
 	static const int RAISE_PCM = 1; //subject to change
 
+	static const int ANALOG_GYRO = 0;
+
 	int TICKS_TO_ACCEL = 10;
 
 	RobotDrive *drive;
@@ -31,11 +34,28 @@ public:
 	Arm *arm;
 
 	Toggle clamp;
+	Timer timer;
+	frc::AnalogGyro *gyro;
+
+	SendableChooser<AutoMode*> *chooser;
+
 
 	void RobotInit() {
-		chooser.AddDefault(autoNameDefault, autoNameDefault);
-		chooser.AddObject(autoNameCustom, autoNameCustom);
-		frc::SmartDashboard::PutData("Auto Modes", &chooser);
+		//chooser.AddDefault(autoNameDefault, autoNameDefault);
+		//chooser.AddObject(autoNameCustom, autoNameCustom);
+		//frc::SmartDashboard::PutData("Auto Modes", &chooser);
+
+		chooser = new SendableChooser<AutoMode*>();
+		chooser->AddObject("Drop Ball", new AutoMode(DROPBALL));
+		chooser->AddDefault("Nothing", new AutoMode(NOTHING));
+		SmartDashboard::PutData("Auton Modes", chooser);
+
+		int j = 5;
+		int *k;
+		k = &j;
+
+
+		k =3;
 
 		drive = new RobotDrive(
 				new VictorSP(LEFT_FRONT_PWM),
@@ -46,7 +66,7 @@ public:
 		pilot = new Lib830::GamepadF310(0);
 		copilot = new Lib830::GamepadF310(1);
 
-
+		gyro = new frc::AnalogGyro(ANALOG_GYRO);
 		arm = new Arm(new Solenoid(CLAMP_PCM), new Solenoid(RAISE_PCM));
 	}
 
@@ -62,23 +82,42 @@ public:
 	 * SendableChooser make sure to add them to the chooser code above as well.
 	 */
 	void AutonomousInit() override {
-		autoSelected = chooser.GetSelected();
-		// std::string autoSelected = SmartDashboard::GetString("Auto Selector", autoNameDefault);
-		std::cout << "Auto selected: " << autoSelected << std::endl;
+		timer.Start();
+		timer.Reset();
+		gyro->Reset();
+		arm->reset();
 
-		if (autoSelected == autoNameCustom) {
-			// Custom Auto goes here
-		} else {
-			// Default Auto goes here
-		}
 	}
 
 	void AutonomousPeriodic() {
-		if (autoSelected == autoNameCustom) {
-			// Custom Auto goes here
-		} else {
-			// Default Auto goes here
+		AutoMode mode = NOTHING;
+		if (chooser->GetSelected()) {
+			mode = *chooser->GetSelected();
 		}
+
+		float angle = gyro->GetAngle();
+		float turn = -angle/60;
+
+		float speed = 0;
+		float time = timer.Get();
+
+
+		if(mode == DROPBALL){
+			if (time < 1) {
+				arm->setClamp(true);
+				turn = 0;
+			}
+			else if (time > 1 && time < 6) {
+				speed = 0.6;
+				arm->setClamp(false);
+			}
+		}
+		else {
+			turn = 0;
+		}
+		drive->ArcadeDrive(speed, turn);
+		arm->update();
+
 	}
 	void TeleopInit() {
 
@@ -86,8 +125,8 @@ public:
 	float prev_speed = 0;
 	float prev_turn = 0;
 
-	bool up_was_pressed = false;
-	bool up = false;
+	bool down_was_pressed = false;
+	bool down = false;
 	void TeleopPeriodic() {
 		//driving controls
 		float cur_turn = pilot->LeftX();
@@ -102,19 +141,19 @@ public:
 		prev_speed = speed;
 
 		//two ways to toggle
-		bool up_is_pressed = copilot->ButtonState(Lib830::GamepadF310::BUTTON_A);
-		if (up_is_pressed != up_was_pressed && up_is_pressed) {
-			up = !up;
+		bool down_is_pressed = copilot->ButtonState(Lib830::GamepadF310::BUTTON_A);
+		if (down_is_pressed != down_was_pressed && down_is_pressed) {
+			down = !down;
 		}
-		arm->setArm(up);
+		arm->setArm(down);
 
-		up_was_pressed = up_is_pressed;
+		down_was_pressed = down_is_pressed;
 
 		//two ways to toggle
 		bool getBall = clamp.toggle(copilot->ButtonState(Lib830::GamepadF310::BUTTON_B));
 		arm->setClamp(getBall);
 
-		SmartDashboard::PutBoolean("clamp open", clamp);
+		SmartDashboard::PutBoolean("clamp out", clamp);
 
 		arm->update();
 
@@ -126,7 +165,7 @@ public:
 
 private:
 	frc::LiveWindow* lw = LiveWindow::GetInstance();
-	frc::SendableChooser<std::string> chooser;
+	//frc::SendableChooser<std::string> chooser;
 	const std::string autoNameDefault = "Default";
 	const std::string autoNameCustom = "My Auto";
 	std::string autoSelected;

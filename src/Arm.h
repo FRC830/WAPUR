@@ -12,23 +12,23 @@
 #include "WPILib.h"
 class Arm {
 public:
-	Arm(Solenoid *clamp, Solenoid *armRaise); //ask about line break sensor usage, would be useful
+	Arm(Solenoid *clamp_open, Solenoid *armLower); //ask about line break sensor usage, would be useful
 
-	void setArm(bool toUp);
-	void setClamp(bool toClose);
+	void setArm(bool toDown);
+	void setClamp(bool toOpen);
 
 	void update();
 	void reset();
 
-	bool getClosed();
-	bool getUp();
+	bool getOpen();
+	bool getDown();
 
 	virtual ~Arm();
 private:
-	bool isClosed;
-	bool isUp;
-	Solenoid *m_clamp;
-	Solenoid *m_armRaise;
+	bool isOpen;
+	bool isDown;
+	Solenoid *m_clamp_open;
+	Solenoid *m_armLower;
 };
 
 
