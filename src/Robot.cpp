@@ -27,15 +27,29 @@ public:
 	static const int DIO_3 = 3;
 	static const int DIO_4 = 4;
 	static const int DIO_5 = 5;
+
+	static const int PWM_0 = 0;
+	static const int PWM_1 = 1;
+	static const int PWM_2 = 2;
+	static const int PWM_3 = 3;
+	static const int PWM_4 = 4;
+	static const int PWM_5 = 5;
 	//declare a drive train object & a Lib830:: gamepad object 
 	//object declaration example: Motor *motor
 
-	DigitalOutput *DIO0;
-	DigitalOutput *DIO1;
-	DigitalOutput *DIO2;
-	DigitalOutput *DIO3;
-	DigitalOutput *DIO4;
-	DigitalOutput *DIO5;
+	DigitalInput *DIO0;
+	DigitalInput *DIO1;
+	DigitalInput *DIO2;
+	DigitalInput *DIO3;
+	DigitalInput *DIO4;
+	DigitalInput *DIO5;
+
+	VictorSP *pwm0;
+	VictorSP *pwm1;
+	VictorSP *pwm2;
+	VictorSP *pwm3;
+	VictorSP *pwm4;
+	VictorSP *pwm5;
 
 
 	Lib830::GamepadF310 *pilot;
@@ -43,21 +57,25 @@ public:
 
 
 	void RobotInit() {
-		chooser.AddDefault(autoNameDefault, autoNameDefault);
-		chooser.AddObject(autoNameCustom, autoNameCustom);
-		frc::SmartDashboard::PutData("Auto Modes", &chooser);
+
 
 		/*initialize drive train (look at http://first.wpi.edu/FRC/roborio/release/docs/cpp/classfrc_1_1RobotDrive.html
 		for constructor */
 		//ex: motor = new Motor (new VictorSP(MOTOR_PWM));
 
-		DIO0 = new DigitalOutput(DIO_0);
-		DIO1 = new DigitalOutput(DIO_1);
-		DIO2 = new DigitalOutput(DIO_2);
-		DIO3 = new DigitalOutput(DIO_3);
-		DIO4 = new DigitalOutput(DIO_4);
-		DIO5 = new DigitalOutput(DIO_5);
+		DIO0 = new DigitalInput(DIO_0);
+		DIO1 = new DigitalInput(DIO_1);
+		DIO2 = new DigitalInput(DIO_2);
+		DIO3 = new DigitalInput(DIO_3);
+		DIO4 = new DigitalInput(DIO_4);
+		DIO5 = new DigitalInput(DIO_5);
 
+		pwm0 = new VictorSP(PWM_0);
+		pwm1 = new VictorSP(PWM_1);
+		pwm2 = new VictorSP(PWM_2);
+		pwm3 = new VictorSP(PWM_3);
+		pwm4 = new VictorSP(PWM_4);
+		pwm5 = new VictorSP(PWM_5);
 
 		//initalize game pad, constructor is Lib830::Gamepad(0)
 		pilot = new Lib830::GamepadF310(0);
@@ -84,36 +102,66 @@ public:
 	void TeleopInit() {
 
 	}
-	Toggle dio_0;
-	Toggle dio_1;
-	Toggle dio_2;
-	Toggle dio_3;
-	Toggle dio_4;
-	Toggle dio_5;
 
 
 	void TeleopPeriodic() {
 
-		DIO0->Set(dio_0.toggle(pilot->ButtonState(Lib830::GamepadF310::BUTTON_A)));
-		DIO1->Set(dio_1.toggle(pilot->ButtonState(Lib830::GamepadF310::BUTTON_B)));
-		DIO2->Set(dio_2.toggle(pilot->ButtonState(Lib830::GamepadF310::BUTTON_X)));
-		DIO3->Set(dio_3.toggle(pilot->ButtonState(Lib830::GamepadF310::BUTTON_Y)));
-		DIO4->Set(dio_4.toggle(pilot->DPadUp()));
-		DIO5->Set(dio_5.toggle(pilot->DPadDown()));
+
+		if (DIO0->Get() == true) {
+			pwm0->Set(1);
+		}
+		else {
+			pwm0->Set(0);
+		}
+
+		if (DIO1->Get() == true) {
+			pwm1->Set(1);
+			SmartDashboard::PutBoolean("pwm1 speed",pwm1->Get());
+		}
+		else {
+			pwm1->Set(0);
+		}
+
+		if (DIO2->Get() == true) {
+			pwm2->Set(1);
+		}
+		else {
+			pwm2->Set(0);
+		}
+
+		if (DIO3->Get() == true) {
+			pwm3->Set(1);
+		}
+		else {
+			pwm3->Set(0);
+		}
+
+		if (DIO4->Get() == true) {
+			pwm4->Set(1);
+		}
+		else {
+			pwm4->Set(0);
+		}
+
+		if (DIO5->Get() == true) {
+			pwm5->Set(1);
+		}
+		else {
+			pwm5->Set(0);
+		}
+
+
+		SmartDashboard::PutNumber("pwm 0", pwm0->Get());
+		SmartDashboard::PutBoolean("digital input", DIO0->Get());
 
 
 	}
 
 	void TestPeriodic() {
-		lw->Run();
 	}
 
 private:
-	frc::LiveWindow* lw = LiveWindow::GetInstance();
-	frc::SendableChooser<std::string> chooser;
-	const std::string autoNameDefault = "Default";
-	const std::string autoNameCustom = "My Auto";
-	std::string autoSelected;
+
 };
 
 START_ROBOT_CLASS(Robot)
